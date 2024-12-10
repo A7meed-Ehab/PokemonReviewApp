@@ -103,6 +103,26 @@ namespace PokemonReviewApp.Controllers
                 return BadRequest(ModelState);
             }
             return Ok($"Added {modelDto.Name} Successfully");
+        }
+        [HttpPut]
+        public IActionResult Update(int countryId, CountryDto modelDto)
+        {
+            if (modelDto == null || countryId != modelDto.Id)
+            {
+                return BadRequest(ModelState);
             }
+            if (!_countryRepository.CountryExists(countryId))
+            {
+                return NotFound();
+            }
+            var mappedModel=_mapper.Map<Country>(modelDto);
+            if(!_countryRepository.Update(mappedModel))
+            {
+                ModelState.AddModelError(string.Empty, "Couldn't Add Model");
+                return StatusCode(500,ModelState);
+            }
+            return NoContent();
+        }
     }
+
 }

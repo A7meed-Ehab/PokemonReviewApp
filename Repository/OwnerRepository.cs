@@ -1,6 +1,8 @@
-﻿using PokemonReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PokemonReviewApp.Data;
 using PokemonReviewApp.Interfaces;
 using PokemonReviewApp.Modles;
+using System.Runtime;
 
 namespace PokemonReviewApp.Repository
 {
@@ -21,7 +23,7 @@ namespace PokemonReviewApp.Repository
 
         public Owner GetOwner(int ownerId)
         {
-            return _context.Owners.Find(ownerId);
+            return _context.Owners.AsNoTracking().Where(o => o.Id == ownerId).FirstOrDefault();
         }
 
         public ICollection<Owner> GetOwners()
@@ -43,6 +45,11 @@ namespace PokemonReviewApp.Repository
         {
            var isSaved= _context.SaveChanges();
            return isSaved > 0 ? true:false;
+        }
+        public bool Update(Owner owner)
+        {
+            _context.Owners.Update(owner);
+            return Save();
         }
     }
 }

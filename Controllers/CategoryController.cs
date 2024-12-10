@@ -73,8 +73,10 @@ namespace PokemonReviewApp.Controllers
                 return BadRequest(ModelState);
 
             }
-            var category = _categoryRepository.GetCategories().Where(c => c.Name.Trim().ToLower() == modelDto.Name.TrimEnd().ToLower()).FirstOrDefault();
-            if (category != null)
+            //var category = _categoryRepository.GetCategories().Where(c => c.Name.Trim().ToLower() == modelDto.Name.TrimEnd().ToLower()).FirstOrDefault();
+            var mappedCategory=_mapper.Map<Category>(modelDto);
+            var checkExists = _categoryRepository.CategoriesExists(mappedCategory.Name);
+           if (checkExists != null)
             {
                 ModelState.AddModelError(string.Empty, "Category Already Exists");
                 return StatusCode(422,ModelState);
@@ -83,13 +85,35 @@ namespace PokemonReviewApp.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var mappedCategory=_mapper.Map<Category>(modelDto);
             if (!_categoryRepository.Create(mappedCategory))
             {
                 ModelState.AddModelError(string.Empty, $"Faild To Add Category {mappedCategory.Name}");
                 return StatusCode(500,ModelState);
             }
             return Ok("Category Added Successfuly");
+        }
+        [HttpPut]
+        public IActionResult UpdateCategory(int categoryId,CategoryDto categoryDto)
+        {
+            if(categoryDto == null)
+            {
+                return BadRequest(ModelState);
+            }
+            if(categoryId != categoryDto.Id)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!_categoryRepository.CategoriesExists(categoryDto.Id))
+            {
+                return NotFound();
+            }
+            var mappedCategory = _mapper.Map<Category>(categoryDto);
+            if (!_categoryRepository.UpdateCategory(mappedCategory))
+            {
+                ModelState.AddModelError(string.Empty, "Something went Werong updating Category");
+                return StatusCode(500,ModelState);
+            }
+            return NoContent();
 
         }
     }

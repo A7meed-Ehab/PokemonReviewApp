@@ -12,9 +12,14 @@ namespace PokemonReviewApp.Repository
         {
             this._context = appDbContext;
         }
-        public bool CategoriesExists(int CategoryId)
+        public bool CategoriesExists(string name)
         {
-            return _context.Categories.Any(c => c.Id == CategoryId);
+            return _context.Categories.Any(e=>e.Name.ToLower()==name.ToLower());
+        }
+
+        public bool CategoriesExists(int id)
+        {
+            return _context.Categories.Any(c=>c.Id==id);
         }
 
         public bool Create(Category category)
@@ -42,6 +47,12 @@ namespace PokemonReviewApp.Repository
         {
             var isSaved = _context.SaveChanges();
             return isSaved > 0 ? true: false; 
+        }
+
+        public bool UpdateCategory(Category category)
+        {
+            _context.Categories.Update(category);
+           return Save();
         }
     }
 }

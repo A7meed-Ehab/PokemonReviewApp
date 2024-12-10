@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Interfaces;
 using PokemonReviewApp.Modles;
+using PokemonReviewApp.Repository;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -53,6 +54,32 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
             return BadRequest();
             return Ok(reviews);
+        }
+        [HttpPost]
+        [Route("Create")]
+        public IActionResult Create(int pokemonId, int reviewerId, ReviewDto reviewDto)
+        {
+            if (reviewDto == null)
+            {
+                return BadRequest(ModelState);
+            }
+            var review = _reviewRepository.GetReview(reviewDto.Id);
+            if(review != null)
+            {
+                ModelState.AddModelError(string.Empty, "Review Already Exists");
+                return StatusCode(422,ModelState);
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var mappedReview = _mapper.Map<Review>(reviewDto);
+            if (!_reviewRepository.Create(pokemonId, reviewerId, mappedReview))
+            {
+                ModelState.AddModelError(string.Empty, "Failed To Add Review");
+                return StatusCode(500, ModelState);
+            };
+            return Ok($"Added New Review");
         }
     }
 }

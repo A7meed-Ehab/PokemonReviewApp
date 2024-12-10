@@ -132,5 +132,25 @@ namespace PokemonReviewApp.Controllers
             };
             return Ok($"Added New Owener {mappedOwner.FirstName} {mappedOwner.LastName}");
         }
+        [HttpPut]
+        public IActionResult Update(int countryId,int ownerId,[FromBody] OwnerDto ownerDto)
+        {
+            if (ownerDto == null || ownerId!=ownerDto.Id)
+            {
+                return BadRequest(ModelState);
+            }
+            if (_ownerRepository.GetOwner(ownerId)==null)
+            {
+                return NotFound();
+            }
+            var mappedModel= _mapper.Map<Owner>(ownerDto);
+            mappedModel.Country = _countryRepository.GetById(countryId);
+            if (!_ownerRepository.Update(mappedModel))
+            {
+                ModelState.AddModelError(string.Empty, "couldn't Update the Owener");
+                return StatusCode(500,ModelState);
+            }
+            return NoContent();
+        }
     } 
 }

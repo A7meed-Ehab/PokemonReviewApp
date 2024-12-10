@@ -14,11 +14,15 @@ namespace PokemonReviewApp.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IPokemonRepository _pokemonRepository;
+        private readonly IOwnerRepository _ownerRepository;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public PokemonController(IMapper mapper,IPokemonRepository pokemonRepository)
+        public PokemonController(IMapper mapper,IPokemonRepository pokemonRepository,IOwnerRepository ownerRepository,ICategoryRepository categoryRepository)
         {
             this._mapper = mapper;
             this._pokemonRepository = pokemonRepository;
+            this._ownerRepository = ownerRepository;
+            this._categoryRepository = categoryRepository;
         }
 
         [HttpGet("GetAll")]
@@ -47,6 +51,54 @@ namespace PokemonReviewApp.Controllers
             }
             return Ok(rate);
 
+        }
+        [HttpPost]
+        [Route("Create")]
+        public IActionResult CreatePokemon([FromQuery]int categoryId,[FromQuery]int ownerId,[FromBody]PokemonDto modelDto)
+        {
+            if(modelDto == null)
+            {
+                return BadRequest();
+            }
+             var getPokemon=_pokemonRepository.GetPokemon(modelDto.Name);
+            if (getPokemon != null)
+            {
+                ModelState.AddModelError(string.Empty, "Pokemon Already Exists!");
+                return StatusCode(422,ModelState);
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var mappedModel = _mapper.Map<Pokemon>(modelDto);
+            if (!_pokemonRepository.Create(categoryId, ownerId, mappedModel))
+            {
+                ModelState.AddModelError(string.Empty, "Failed to Add Model");
+                return StatusCode(500, ModelState); 
+            }
+            return Ok($"Added {mappedModel.Name} Successfully");
+        }
+        [HttpPut]
+        public IActionResult UpdatePokemon(int pokeId,
+          [FromQuery] int catId,
+          [FromQuery] string catName,
+          [FromBody] PokemonDto updatedPokemon)
+        {
+            if (updatedPokemon == null)
+                return BadRequest(ModelState);
+
+            if (pokeId != updatedPokemon.Id)
+                return BadRequest(ModelState);
+
+            if (_pokemonRepository.GetPokemon(pokeId)==null)
+                return NotFound();
+            var pokemonMap = _mapper.Map<Pokemon>(updatedPokemon);
+            if (!_pokemonRepository.Update(catId, catName, pokemonMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating owner");
+                return StatusCode(500, ModelState);
+            }
+            return NoContent();
         }
     }
 }

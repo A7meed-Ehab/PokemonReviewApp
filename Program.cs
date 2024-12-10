@@ -21,12 +21,15 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IOwnerRepository, OwnerRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewerRepository, ReviewerRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
 // Configure DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging()
+        .EnableDetailedErrors();
+    ;
 });
 
 var app = builder.Build();

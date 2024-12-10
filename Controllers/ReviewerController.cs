@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Interfaces;
 using PokemonReviewApp.Modles;
+using PokemonReviewApp.Repository;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -69,6 +70,25 @@ namespace PokemonReviewApp.Controllers
             return Ok(reviews);
         }
 
+        [HttpPost]
+        [Route("Create")]
+        public IActionResult Create(ReviewerDto modelDto)
+        {
+            if (modelDto == null)
+            {
+                return BadRequest(ModelState);
+            }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!_reviewerRepository.Create(_mapper.Map<Reviewer>(modelDto)))
+            {
+                ModelState.AddModelError(string.Empty, "Couldn't Add Reviewer");
+                return BadRequest(ModelState);
+            }
+            return Ok($"Added Successfully");
+        }
     }
 }
